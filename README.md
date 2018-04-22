@@ -1,0 +1,3 @@
+- cnpm i -S cheerio 安装一个nodejs版的jquery，用来解析dom
+- cnpm i -S mongojs 安装mongojs用于将抓去的数据存储到数据库中
+- cnpm i -S mongoose mongojs接口太少，不便于操作，换成mongoose
