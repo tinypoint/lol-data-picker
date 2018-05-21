@@ -1,10 +1,11 @@
 {
-  "name": "lol-data-picker",
+  "name": "data-picker",
   "version": "0.0.0",
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "pick": "node ./cmd/picker.js"
+    "pick": "node ./cmd/picker.js",
+    "pickUrl": "node ./cmd/pickUrl.js"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
@@ -14,6 +15,7 @@
     "http-errors": "~1.6.2",
     "jade": "~1.11.0",
     "mongoose": "^5.0.15",
-    "morgan": "~1.9.0"
+    "morgan": "~1.9.0",
+    "request": "^2.86.0"
   }
 }

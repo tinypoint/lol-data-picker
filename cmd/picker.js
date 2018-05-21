@@ -1,51 +1,74 @@
+const dbConnector = require('../database/connect');
+const MovieUrl = require('../database/models/movieUrl');
+const Movie = require('../database/models/movie');
+const getDetail = require('../movie/getDetail');
+const config = require('../config');
+const DB_URI = `mongodb://${config.user}:${config.pwd}@127.0.0.1:27017/data-picker`;
+const connection = dbConnector(DB_URI);
 
-const mongoose = require('mongoose');
-const get = require('../utils/get');
-const URLS = require('../lol/onlineUrls');
-const { getHeroDetailUrls, getHeroDetailInfo } = require('../lol/getHeroDetailUrls');
+let page,
+    pageSize = 20,
+    errArr = [],
+    promiseArr = [];
 
-const db = mongoose.connection;
-const DB_URI = 'mongodb://127.0.0.1:27017/lol';
+function getCurrent (arr, page, pageSize) {
+    let length = arr.length;
 
-db.on('error', (err) => console.error('connection error:'));
-db.once('open', () => {
-    console.error('connection success')
-});
-mongoose.connect(DB_URI);
-
-const heroInfoSchema = mongoose.Schema({
-    championId: String,
-    url: String,
-    heroAvaUrl: String
-});
-
-const HeroInfo = mongoose.model('HeroInfos', heroInfoSchema);
-
-async function getHeroInfo () {
-    let heroListLength;
-    await get(URLS.indexUrl).then(getHeroDetailUrls).then(detailObjs => {
-        heroListLength = detailObjs.length;
-        // 存储数据库操作
-        detailObjs.forEach(detailObj => {
-            get(detailObj.url).then(getHeroDetailInfo).then(heroInfo => {
-                heroListLength --;
-                HeroInfo.findOneAndUpdate({championId: detailObj.championId}, {$set: Object.assign({}, detailObj, heroInfo)}, {upsert: true, new: true}, (err, doc) => {
-                    if (err) {
-                        console.error(`插入英雄${detailObj.championId}时出现错误`)
-                    } else {
-                        console.log(`成功更新英雄${detailObj.championId}的信息`)
-                    }
-                    if (!heroListLength) {
-                        db.close();
-                    }
-                    return;
-                });
-            });
-        });
-    });
+    if ((page + 1) * pageSize > length) {
+        return arr.slice(page * pageSize);
+    } else {
+        return arr.slice(page * pageSize, (page + 1) * pageSize);
+    }
 }
 
-getHeroInfo();
+MovieUrl.find({}).then(docs => {
+    docs = docs.filter(doc => !doc.hasPicked);
+    let length = docs.length;
+    let page = 0;
 
+    function queue () {
+        let bunch = [];
+        let urlFlag = [];
+        let pA = getCurrent(docs, page, pageSize).map(doc => {
+            return getDetail(doc.url).then(res => {
+                if (res.status) {
+                    console.log(`${doc.url}页内的数据抓取完毕`);
+                    bunch.push(res.result);
+                    urlFlag.push(doc.url);
+                } else {
+                    console.error(`${doc.url}页${res.message}`);
+                    errArr.push(doc.url);
+                }
+            });
+        });
 
+        return Promise.all(pA).then(() => {
 
+            Promise.all(urlFlag.map(url => {
+                return MovieUrl.findOneAndUpdate({url}, {hasPicked: true}).then(res => res).catch(err => {});
+            })).then(() => {
+                console.log(`更新第${page}批url标识`)
+            })
+            
+            return Movie.insertMany(bunch).then(res => {
+                console.log(`第${page}批存入数据库成功`);
+                page++;
+                if ((page + 1) * pageSize < length) {
+                    return queue(page);
+                } else {
+                    connection.close();
+                    console.log('\n');
+                    console.log('\n');
+                    console.log('结束');
+                    console.log('\n');
+                    console.log('\n');
+                    console.log(`共${errArr.length}页抓取失败`);
+                }
+            })
+
+            
+        });
+    }
+
+    return queue();
+})
