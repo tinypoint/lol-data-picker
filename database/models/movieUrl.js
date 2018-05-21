@@ -5,6 +5,6 @@ const MovieUrlSchema = mongoose.Schema({
     hasPicked: Boolean
 });
 
-const MovieUrl = mongoose.model('movie-uras', MovieUrlSchema);
+const MovieUrl = mongoose.model('movie-urls', MovieUrlSchema);
 
 module.exports = MovieUrl;
