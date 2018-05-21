@@ -5,15 +5,19 @@
   "scripts": {
     "start": "node ./bin/www",
     "pick": "node ./cmd/picker.js",
-    "pickUrl": "node ./cmd/pickUrl.js"
+    "pickUrl": "node ./cmd/pickUrl.js",
+    "getImageUrl": "node ./cmd/getImageUrl.js",
+    "getImage": "node ./cmd/getImage.js"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "express": "~4.16.0",
+    "fs-extra": "^6.0.1",
     "http-errors": "~1.6.2",
     "jade": "~1.11.0",
+    "mkdirp": "^0.5.1",
     "mongoose": "^5.0.15",
     "morgan": "~1.9.0",
     "request": "^2.86.0"
