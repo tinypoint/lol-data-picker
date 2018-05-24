@@ -6,6 +6,8 @@
     "start": "node ./bin/www",
     "pick": "node ./cmd/picker.js",
     "pickUrl": "node ./cmd/pickUrl.js",
+    "asUrl": "node ./cmd/asUrl.js",
+    "as": "node ./cmd/as.js",
     "getImageUrl": "node ./cmd/getImageUrl.js",
     "getImage": "node ./cmd/getImage.js"
   },
